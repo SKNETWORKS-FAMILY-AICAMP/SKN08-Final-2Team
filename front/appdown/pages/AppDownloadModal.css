@@ -1,0 +1,56 @@
+/* ✅ 모달 카드 스타일 */
+.modal-card {
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* ✅ 모달 상단 타이틀 스타일 */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+}
+
+/* ✅ 닫기 버튼 스타일 */
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    font-size: 18px;
+    padding: 4px;
+}
+
+/* ✅ QR 코드 섹션 스타일 */
+.modal-content {
+    text-align: center;
+    padding: 20px;
+}
+
+/* ✅ "앱으로 열기" 제목 스타일 */
+.qr-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+/* ✅ QR 코드 이미지 스타일 */
+.qr-code {
+    width: 180px;
+    height: 180px;
+    margin: 10px auto;
+    display: block;
+}
+
+/* ✅ 설명 텍스트 스타일 */
+.qr-description {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+    line-height: 1.4;
+}

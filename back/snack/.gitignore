@@ -1,0 +1,19 @@
+.env
+.DS_Store *
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+
+avcaxcxc.txt
+.pyc
+temp/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
