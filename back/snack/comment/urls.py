@@ -12,6 +12,8 @@ urlpatterns = [
     path('board/<int:board_id>/', CommentController.as_view({'get': 'getAllCommentsByBoard'}), name='get-comments-by-board'),
     path('author/<int:author_id>/', CommentController.as_view({'get': 'getAllCommentsByAuthor'}), name='get-comments-by-author'),
     path('delete/<int:comment_id>/', CommentController.as_view({'delete': 'deleteComment'}), name='delete-comment'),
+    path('reply/', CommentController.as_view({'post': 'createReply'})),
+
 ]
 
 # DRF router의 URL을 포함

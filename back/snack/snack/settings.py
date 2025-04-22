@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'delete_account',
     'github_authentication',
     'meta_authentication',
+    'account_prefer'
 ]
 
 MIDDLEWARE = [
@@ -73,8 +74,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS').split(',')
 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -98,16 +99,17 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-request-with',
-    'userToken',
-    'Account-Id',
+    'usertoken',
+    'account-id',
 ]
 
-CORS_EXPOSE_HEADERS = ['usertoken', 'account_id']
+CORS_EXPOSE_HEADERS = ['usertoken', 'account-id', 'authorization']
 
 KAKAO = {
     'LOGIN_URL': os.getenv('KAKAO_LOGIN_URL'),
     'CLIENT_ID': os.getenv('KAKAO_CLIENT_ID'),
     'REDIRECT_URI': os.getenv('KAKAO_REDIRECT_URI'),
+    'REDIRECT_URI_FOR_APP': os.getenv('KAKAO_REDIRECT_URI_FOR_APP'),
     'TOKEN_REQUEST_URI': os.getenv('KAKAO_TOKEN_REQUEST_URI'),
     'USER_INFO_REQUEST_URI': os.getenv('KAKAO_USER_INFO_REQUEST_URI'),
 }
@@ -117,6 +119,7 @@ NAVER = {
     'CLIENT_ID': os.getenv('NAVER_CLIENT_ID'),
     'CLIENT_SECRET': os.getenv('NAVER_CLIENT_SECRET'),
     'REDIRECT_URI': os.getenv('NAVER_REDIRECT_URI'),
+    'REDIRECT_URI_FOR_APP': os.getenv('NAVER_REDIRECT_URI_FOR_APP'),
     'TOKEN_REQUEST_URI': os.getenv('NAVER_TOKEN_REQUEST_URI'),
     'USER_INFO_REQUEST_URI': os.getenv('NAVER_USER_INFO_REQUEST_URI'),
 }
@@ -126,6 +129,7 @@ GOOGLE = {
     'CLIENT_ID': os.getenv('GOOGLE_CLIENT_ID'),
     'CLIENT_SECRET': os.getenv('GOOGLE_CLIENT_SECRET'),
     'REDIRECT_URI': os.getenv('GOOGLE_REDIRECT_URI'),
+    'REDIRECT_URI_FOR_APP': os.getenv('GOOGLE_REDIRECT_URI'),
     'TOKEN_REQUEST_URI': os.getenv('GOOGLE_TOKEN_REQUEST_URI'),
     'USER_INFO_REQUEST_URI': os.getenv('GOOGLE_USER_INFO_REQUEST_URI'),
 }

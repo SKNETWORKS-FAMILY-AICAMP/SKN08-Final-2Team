@@ -26,3 +26,10 @@ class AESCipher:
         cipher = AES.new(self.key, AES.MODE_ECB)
         decrypted = cipher.decrypt(b64decode(enc))
         return unpad(decrypted.decode())
+
+def is_encrypted(value: str) -> bool:
+    try:
+        AESCipher().decrypt(value)
+        return True
+    except:
+        return False

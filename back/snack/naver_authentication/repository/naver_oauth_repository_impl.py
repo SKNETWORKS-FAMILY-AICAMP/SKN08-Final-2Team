@@ -13,6 +13,7 @@ class NaverOauthRepositoryImpl(NaverOauthRepository):
             cls.__instance.clientId = settings.NAVER['CLIENT_ID']
             cls.__instance.clientSecret = settings.NAVER['CLIENT_SECRET']
             cls.__instance.redirectUri = settings.NAVER['REDIRECT_URI']
+            cls.__instance.redirectUri = settings.NAVER['REDIRECT_URI_FOR_APP']
             cls.__instance.tokenRequestUri = settings.NAVER['TOKEN_REQUEST_URI']
             cls.__instance.userInfoRequestUri = settings.NAVER['USER_INFO_REQUEST_URI']
 
@@ -44,4 +45,17 @@ class NaverOauthRepositoryImpl(NaverOauthRepository):
     def getUserInfo(self, accessToken):
         headers = {'Authorization': f'Bearer {accessToken}'}
         response = requests.get(self.userInfoRequestUri, headers=headers)
+        return response.json()
+
+
+    def getAccessTokenForApp(self, code, state):
+        accessTokenRequestForApp = {
+            'grant_type': 'authorization_code',
+            'client_id': self.clientId,
+            'client_secret': self.clientSecret,
+            'code': code,
+            'state': state
+        }
+
+        response = requests.post(self.tokenRequestUri, data=accessTokenRequestForApp)
         return response.json()

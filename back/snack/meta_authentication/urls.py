@@ -11,7 +11,7 @@ urlpatterns = [
          MetaOauthController.as_view({ 'get': 'requestMetaOauthLink' }),
          name='naver Oauth 링크 요청'),
     path('redirect-access-token',
-         MetaOauthController.as_view({ 'post': 'requestAccessToken' }),
+         MetaOauthController.as_view({ 'get': 'requestAccessToken','post': 'requestAccessToken' }),
          name='naver Access Token 요청'),
      path('request-user-token',
          MetaOauthController.as_view({ 'post': 'requestUserToken' }),

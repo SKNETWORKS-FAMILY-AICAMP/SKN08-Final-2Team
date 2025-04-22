@@ -19,6 +19,7 @@ export default defineNuxtConfig({
     './home/nuxt.config.ts',
     './account/nuxt.config.ts',
     './board/nuxt.config.ts',
+    './comment/nuxt.config.ts',
   ],
 
   css: [
@@ -55,6 +56,7 @@ export default defineNuxtConfig({
     '~/home/index.ts',
     '~/account/index.ts',
     '~/board/index.ts',
+    '~/comment/index.ts',
   ],
 
   imports: {

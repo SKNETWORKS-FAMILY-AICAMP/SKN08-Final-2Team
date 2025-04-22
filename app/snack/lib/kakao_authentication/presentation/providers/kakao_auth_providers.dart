@@ -1,14 +1,16 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:kakao_flutter_sdk/kakao_flutter_sdk.dart';
 import 'package:snack/kakao_authentication/domain/usecase/login_usecase.dart';
+import 'package:snack/kakao_authentication/domain/usecase/logout_usecase.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../domain/usecase/fetch_user_info_usecase.dart';
 import '../../domain/usecase/request_user_token_usecase.dart';
 
-
 class KakaoAuthProvider with ChangeNotifier {
   final LoginUseCase loginUseCase;
+  final LogoutUseCase logoutUseCase;
   final FetchUserInfoUseCase fetchUserInfoUseCase;
   final RequestUserTokenUseCase requestUserTokenUseCase;
 
@@ -20,17 +22,37 @@ class KakaoAuthProvider with ChangeNotifier {
   bool _isLoggedIn = false;
   bool _isLoading = false;
   String _message = '';
+  String _nickname = '';
+  String _email = '';
 
-  // 해당 변수 값을 즉시 가져올 수 있도록 구성
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   String get message => _message;
+  String get nickname => _nickname;
+  String get email => _email;
 
   KakaoAuthProvider({
     required this.loginUseCase,
+    required this.logoutUseCase,
     required this.fetchUserInfoUseCase,
     required this.requestUserTokenUseCase,
-  }); // 객체 의존성 주입 받아 초기화
+  }) {
+    _initAuthState();
+  }
+
+  Future<void> _initAuthState() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _userToken = await secureStorage.read(key: 'userToken');
+      _isLoggedIn = _userToken != null;
+    } catch (e) {
+      print("초기화 오류: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> login() async {
     _isLoading = true;
@@ -38,38 +60,34 @@ class KakaoAuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      print("Kakao loginUseCase.execute()");
       _accessToken = await loginUseCase.execute();
-      print("AccessToken obtained: $_accessToken");
 
       final userInfo = await fetchUserInfoUseCase.execute();
-      print("User Info fetched: $userInfo");
-
       final email = userInfo.kakaoAccount?.email;
       final nickname = userInfo.kakaoAccount?.profile?.nickname;
 
-      final accountPath = "Kakao";  // ✅ 추가
-      final roleType = "USER";  // ✅ 추가
+      final accountPath = "Kakao";
+      final roleType = "USER";
 
-      print("User email: $email, User nickname: $nickname, Account Path: $accountPath, Role Type: $roleType");
+      print(
+          "👤 유저 정보 → 닉네임: $nickname, 이메일: $email, 로그인 경로: $accountPath, 권한 타입: $roleType");
 
       _userToken = await requestUserTokenUseCase.execute(
           _accessToken!, email!, nickname!, accountPath, roleType);
 
-      print("User Token obtained: $_userToken");
-
       await secureStorage.write(key: 'userToken', value: _userToken);
+      print("🔐 userToken: $_userToken");
 
       _isLoggedIn = true;
-      _message = '로그인 성공';
-      print("Login successful");
+      _message = 'Kakao 로그인 성공';
+      await _initAuthState();
     } catch (e) {
       _isLoggedIn = false;
-      _message = "로그인 실패: $e";
+      _message = "Kakao 로그인 실패: $e";
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<User> fetchUserInfo() async {
@@ -77,20 +95,48 @@ class KakaoAuthProvider with ChangeNotifier {
       final userInfo = await fetchUserInfoUseCase.execute();
       return userInfo;
     } catch (e) {
-      print("Kakao 사용자 정보 불러오기 실패: $e");
+      print("KakaoSDK 사용자 정보 불러오기 실패: $e");
       rethrow;
     }
   }
 
+  Future<void> setToken(String token) async {
+    _userToken = token;
+    _isLoggedIn = true;
 
+    await secureStorage.write(key: 'userToken', value: _userToken);
+
+    notifyListeners();
+  }
+
+  void setUserInfo(String email, String nickname) {
+    _email = email;
+    _nickname = nickname;
+    notifyListeners();
+  }
+
+
+  // 로그아웃 처리
   Future<void> logout() async {
+    _isLoading = true;
+    notifyListeners();
+
     try {
-      await UserApi.instance.logout();
+      final token = await secureStorage.read(key: 'userToken');
+      if (token != null) {
+        await logoutUseCase.execute(token);
+      }
+
       await secureStorage.delete(key: 'userToken');
       _isLoggedIn = false;
-      notifyListeners();
+      _accessToken = null;
+      _userToken = null;
+      _message = 'Kakao 로그아웃 완료';
     } catch (e) {
-      print("Kakao 로그아웃 실패: $e");
+      _message = "Kakao 로그아웃 실패: $e";
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

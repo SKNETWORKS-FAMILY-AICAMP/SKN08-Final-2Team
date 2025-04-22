@@ -20,6 +20,7 @@
             class="search-input"
             placeholder="무엇을 찾고 계신가요?"
             @focus="expandSearch"
+            @keyup.enter="search"
         />
 
         <!-- ✅ 오른쪽 검색 버튼 (대화 아이콘 + 주황색 배경) -->
@@ -30,42 +31,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref } from "vue";
+import * as axiosUtility from "../../utility/axiosInstance";
 
 const searchQuery = ref("");
-const categories = ref(["맛집", "동네친구"]);
-const selectedCategory = ref("맛집");
-const dropdownOpen = ref(false);
-const isExpanded = ref(false);
+const responseText = ref("");
+const userToken = ref("");
+const accountId = ref<number | null>(null);
+const { fastapiAxiosInst } = axiosUtility.createAxiosInstances();
 
-const selectCategory = (category: string) => {
-    selectedCategory.value = category;
-    dropdownOpen.value = false;
-};
-
-const toggleDropdown = () => {
-    dropdownOpen.value = !dropdownOpen.value;
-};
-
-const expandSearch = () => {
-    isExpanded.value = true;
-};
-
-const collapseSearch = () => {
-    isExpanded.value = false;
-};
-
-const search = () => {
-    console.log("검색 실행: ", searchQuery.value);
-};
-
-/* ✅ 바깥 클릭 감지해서 검색창 축소 */
 onMounted(() => {
-    document.addEventListener("click", collapseSearch);
+  // 로그인 후 localStorage에 저장된 토큰, 계정 ID 가져오기
+  userToken.value = localStorage.getItem("userToken") || "";
+  const idFromStorage = localStorage.getItem("account_id");
+  accountId.value = idFromStorage ? parseInt(idFromStorage) : null;
 });
-onBeforeUnmount(() => {
-    document.removeEventListener("click", collapseSearch);
-});
+
+const search = async () => {
+  console.log("🔍 searchQuery:", searchQuery.value);
+  console.log("🔍 userToken:", userToken.value);
+  console.log("🔍 accountId:", accountId.value);
+  
+  if (!searchQuery.value || !userToken.value || !accountId.value) {
+    alert("로그인 또는 검색어 확인이 필요합니다.");
+    return;
+  }
+
+  try {
+    const response = await fastapiAxiosInst.post("/llm/search", {
+      query: searchQuery.value,
+    }, {
+      headers: {
+        userToken: userToken.value,
+        "account-id": accountId.value,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const resultText = response.data?.response || "응답 없음";
+    responseText.value = resultText;
+
+    // Chat History 저장
+    await fastapiAxiosInst.post("/chat-history/save", {
+      user_message: searchQuery.value,
+      bot_response: resultText,
+    }, {
+      headers: {
+        userToken: userToken.value,
+        "account-id": accountId.value?.toString(),
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("검색 중 오류 발생:", error);
+    responseText.value = "에러가 발생했습니다.";
+  }
+};
 </script>
 
 <style scoped>

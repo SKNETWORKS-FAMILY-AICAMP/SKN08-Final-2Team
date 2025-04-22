@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>HUNGLE</string>
+	<string>HUNGLL</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,28 +15,13 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>HUNGLE</string>
+	<string>HUNGLL</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-
-    <!-- ✅ 구글 로그인 관련 설정 추가 -->
-    <key>CFBundleURLTypes</key>
-    <array>
-      <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>$(REVERSED_CLIENT_ID)</string>
-        </array>
-      </dict>
-    </array>
-
-	<!-- ✅ URL 스킴 (카카오 / 네이버) -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -51,33 +36,29 @@
 				<string>$(NAVER_CLIENT_ID)</string>
 			</array>
 		</dict>
-	</array>
 
+		<dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>$(REVERSED_CLIENT_ID)</string>
+            </array>
+        </dict>
+
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-
-	<!-- ✅ 네이버 로그인 필수 키 -->
-	<key>naverServiceAppUrlScheme</key>
-	<string>$(NAVER_CLIENT_ID)</string>
-
-	<key>naverConsumerKey</key>
-	<string>$(NAVER_CLIENT_ID)</string>
-
-	<key>naverConsumerSecret</key>
-	<string>$(NAVER_CLIENT_SECRET)</string>
-
-	<key>naverServiceAppName</key>
-	<string>Hungle</string>
-
-	<!-- ✅ 외부 앱 쿼리 허용 -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+	    <string>flutter</string>
 		<string>kakaotalk</string>
 		<string>kakaokompassauth</string>
 		<string>naversearchapp</string>
 		<string>naversearchthirdlogin</string>
+		<string>com-google-gidconsent</string>
+        <string>com-google-gidconsent-screen</string>
 	</array>
-
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAllowsArbitraryLoads</key>
@@ -86,8 +67,6 @@
 	<true/>
 	<key>NSAllowsArbitraryLoadsInWebContent</key>
 	<true/>
-
-	<!-- ✅ 네이버 및 기타 도메인 허용 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -123,8 +102,6 @@
 			</dict>
 		</dict>
 	</dict>
-
-	<!-- ✅ 권한 설명 -->
 	<key>NSCameraUsageDescription</key>
 	<string>이 앱은 사진 촬영을 위해 카메라 접근 권한이 필요합니다.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -135,7 +112,6 @@
 	<string>이 앱은 편집된 사진을 저장하기 위해 사진 라이브러리에 접근합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>이 앱은 사진을 업로드하기 위해 사진 라이브러리에 접근합니다.</string>
-
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -166,5 +142,13 @@
 	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>naverConsumerKey</key>
+	<string>$(NAVER_CLIENT_ID)</string>
+	<key>naverConsumerSecret</key>
+	<string>$(NAVER_CLIENT_SECRET)</string>
+	<key>naverServiceAppName</key>
+	<string>HUNGLL</string>
+	<key>naverServiceAppUrlScheme</key>
+	<string>$(NAVER_CLIENT_ID)</string>
 </dict>
 </plist>

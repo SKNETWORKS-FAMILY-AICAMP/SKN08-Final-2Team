@@ -1,60 +1,61 @@
 import * as axiosUtility from "../../../utility/axiosInstance";
-import {useAccountStore} from "../../../account/stores/accountStore";
-import { format } from 'date-fns'
+import { useAccountStore } from "../../../account/stores/accountStore";
 
+export const boardAction = {
+  async requestCreateBoard(payload) {
+    console.log("🧪 payload 내용 확인:", payload);
 
-export const boardAction = { // ✅ `export const` 확인
-    async requestCreateBoard(payload) {
-        console.log("🧪 payload 내용 확인:", payload);
-        
-        const { djangoAxiosInstance } = axiosUtility.createAxiosInstances();
-        const accountStore = useAccountStore();
+    const { djangoAxiosInstance } = axiosUtility.createAxiosInstances();
+    const accountStore = useAccountStore();
 
-        const { title, content, image, end_time, restaurant_id } = payload;
-        const author_id = payload.author_id || localStorage.getItem("account_id");
-        console.log("🟢 author_id 값:", author_id);
+    const { title, content, image, end_time, restaurant_id } = payload;
+    const author_id = payload.author_id || localStorage.getItem("account_id");
 
-        console.log("account_id=", accountStore.accountId);
+    if (!title || !author_id) {
+      console.error("❌ 필수 필드 누락: 제목과 author_id는 필수입니다.");
+      throw new Error("제목과 로그인은 필수 입력값입니다.");
+    }
 
-        payload.selectedDate = new Date(payload.end_time);
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("author_id", String(author_id));
+      formData.append("end_time", new Date(end_time).toISOString());
 
-        // formData.append('end_time', payload.selectedDate.value);
-        // console.log("🟢 formData 확인:", Object.fromEntries(formData.entries()));
+      // ✅ image가 File일 경우에만 append
+      if (image instanceof File) {
+        formData.append("image", image);
+      } else if (image) {
+        console.warn("⚠️ image가 File 타입이 아님. 무시됨:", image);
+      } else {
+        console.log("ℹ️ 이미지 없음 (선택사항)");
+      }
 
-        try {
-            const formData = new FormData();
-            formData.append("title", title);
-            formData.append("content", content);
-            formData.append("author_id", author_id);
-            formData.append("end_time", new Date(payload.end_time).toISOString());
+      if (restaurant_id) {
+        formData.append("restaurant_id", String(restaurant_id));
+      }
 
-          
-            if (image instanceof File || image instanceof Blob) {
-              formData.append("image", image); // ✅ 이게 정상 작동하려면 image는 File이어야 함
-            } else {
-              console.warn("⚠️ image가 File이 아닙니다", image);
-            }
-          
-            if (restaurant_id) {
-              formData.append("restaurant_id", restaurant_id);
-            }
+      console.log("📤 게시글 생성 요청 FormData.entries():");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, ":", value);
+      }
 
-            if (!payload.title || !payload.author_id) {
-                     console.error("❌ 필수 필드 누락: 제목과 author_id는 필수입니다.");
-                     throw new Error("제목과 로그인은 필수 입력값입니다.");
-                 }
+      const res = await djangoAxiosInstance.post("/board/create/", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+          "Content-Type": undefined  // ✅ 핵심!
+        },
+      });
 
-            console.log("📤 게시글 생성 요청 데이터:", Object.fromEntries(formData.entries()));
-
-            const res = await djangoAxiosInstance.post(`/board/create/`, formData, {
-              headers: {}
-            });
-
-            console.log("✅ 게시글 생성 성공:", res.data);
-            return res.data;
-        } catch (error) {
-            console.error("❌ requestCreateBoard() 중 에러:", error.response ? error.response.data : error.message);
-            throw error;
-        }
-    },
+      console.log("✅ 게시글 생성 성공:", res.data);
+      return res.data;
+    } catch (error) {
+      console.error(
+        "❌ requestCreateBoard() 중 에러:",
+        error.response ? error.response.data : error.message
+      );
+      throw error;
+    }
+  }
 };

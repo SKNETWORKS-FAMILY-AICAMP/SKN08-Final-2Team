@@ -27,3 +27,6 @@ class NaverOauthServiceImpl(NaverOauthService):
 
     def requestUserInfo(self, accessToken):
         return self.__naverOauthRepository.getUserInfo(accessToken)
+
+    def requestAccessTokenForApp(self, code, state):
+        return self.__naverOauthRepository.getAccessTokenForApp(code, state)

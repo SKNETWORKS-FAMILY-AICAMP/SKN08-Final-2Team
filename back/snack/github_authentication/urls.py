@@ -12,7 +12,7 @@ urlpatterns = [
          GithubOauthController.as_view({ 'get': 'requestGithubOauthLink' }),
          name='Github Oauth 링크 요청'),
     path('redirect-access-token',
-         GithubOauthController.as_view({ 'post': 'requestAccessToken' }),
+         GithubOauthController.as_view({ 'get': 'requestAccessToken','post': 'requestAccessToken' }),
          name='Github Access Token 요청'),
     path('request-admin-code-validation',
          GithubOauthController.as_view({ 'post': 'validateAdminCode' }),

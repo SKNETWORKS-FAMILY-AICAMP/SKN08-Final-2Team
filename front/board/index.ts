@@ -24,6 +24,17 @@ export default defineNuxtModule({
                 path: '/board/create',
                 file: resolve(themeDir, 'board/pages/create/Create.vue'),
             });
+            pages.push({
+                name: 'BoardDetail',
+                path: '/board/:id',
+                file: resolve(themeDir, 'board/pages/detail/Detail.vue'),
+              });
+            pages.push({
+                name: 'BoardModify',
+                path: '/board/modify/:id',
+                file: resolve(themeDir, 'board/pages/modify/Modify.vue'),
+              });
+            
         });
 
         nuxt.hook('imports:dirs', (dirs) => {

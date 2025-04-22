@@ -13,8 +13,9 @@
             accept="image/*"
             outlined
             dense
+            clearable
             @update:modelValue="handleImageUpload"
-          ></v-file-input>
+          />
 
           <!-- 이미지 미리보기 + 삭제 버튼 -->
           <div v-if="previewImage" class="relative-container mt-2">
@@ -23,7 +24,7 @@
               icon
               small
               color="red"
-              style="position: absolute; top: 5px; right: 5px; z-index: 1"
+              class="delete-button"
               @click="removeImage"
             >
               <v-icon small>mdi-close</v-icon>
@@ -72,8 +73,8 @@
       <!-- 오른쪽 패널 -->
       <v-col cols="12" md="8">
         <v-card class="pa-4">
-          <v-text-field v-model="title" label="모임 제목" outlined dense hide-details class="mb-4"></v-text-field>
-          <v-textarea v-model="content" label="모임 소개" outlined dense hide-details rows="6"></v-textarea>
+          <v-text-field v-model="title" label="모임 제목" outlined dense hide-details class="mb-4" />
+          <v-textarea v-model="content" label="모임 소개" outlined dense hide-details rows="6" />
         </v-card>
       </v-col>
     </v-row>
@@ -96,31 +97,31 @@ const title = ref('');
 const content = ref('');
 const thumbnail = ref<File | null>(null);
 const previewImage = ref('');
-const datetime = ref<Date | null>(null);
-const selectedRestaurant = ref(null);
+const datetime = ref<Date | null>(new Date());
+const selectedRestaurant = ref<number | null>(null);
 const restaurantList = ref([]);
 const loadingRestaurants = ref(false);
 
 onMounted(async () => {
-  datetime.value = new Date();
-
   const userToken = localStorage.getItem("userToken");
   if (userToken) {
     await accountAction.getAccountAndProfile(userToken);
   }
 });
 
-const handleImageUpload = (file: File | File[]) => {
-  const realFile = Array.isArray(file) ? file[0] : file;
-  if (!realFile) return;
+const handleImageUpload = (file: File | File[] | null) => {
+  const selected = Array.isArray(file) ? file[0] : file;
+  if (!(selected instanceof File)) {
+    removeImage();
+    return;
+  }
 
-  thumbnail.value = realFile;
-
+  thumbnail.value = selected;
   const reader = new FileReader();
   reader.onload = (e) => {
     previewImage.value = e.target?.result as string;
   };
-  reader.readAsDataURL(realFile);
+  reader.readAsDataURL(selected);
 };
 
 const removeImage = () => {
@@ -128,13 +129,13 @@ const removeImage = () => {
   previewImage.value = '';
 };
 
-const onSearchRestaurant = async (searchText: string) => {
-  if (!searchText) return;
+const onSearchRestaurant = async (query: string) => {
+  if (!query) return;
   loadingRestaurants.value = true;
   try {
     const { djangoAxiosInstance } = axiosUtility.createAxiosInstances();
     const res = await djangoAxiosInstance.get('/restaurants/search/', {
-      params: { keyword: searchText },
+      params: { keyword: query },
     });
     restaurantList.value = res.data.results || [];
   } catch (error) {
@@ -154,19 +155,13 @@ const submitBoard = async () => {
   }
 
   try {
-    const formData = new FormData();
-    formData.append("title", title.value);
-    formData.append("content", content.value);
-    formData.append("author_id", accountId);
-    formData.append("end_time", datetime.value?.toISOString() || new Date().toISOString());
-    if (thumbnail.value) formData.append("image", thumbnail.value);
-    if (selectedRestaurant.value) formData.append("restaurant_id", selectedRestaurant.value);
-
-    const { djangoAxiosInstance } = axiosUtility.createAxiosInstances();
-    await djangoAxiosInstance.post('/board/create/', formData, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    await boardStore.requestCreateBoard({
+      title: title.value,
+      content: content.value,
+      image: thumbnail.value ?? undefined,
+      end_time: datetime.value?.toISOString() || new Date().toISOString(),
+      restaurant_id: selectedRestaurant.value ?? undefined,
+      author_id: parseInt(accountId),
     });
 
     router.push('/board/all');
@@ -185,5 +180,11 @@ const submitBoard = async () => {
 }
 .relative-container {
   position: relative;
+}
+.delete-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 1;
 }
 </style>

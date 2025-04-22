@@ -58,12 +58,12 @@ class NaverOauthController(viewsets.ViewSet):
                     except ValueError:
                         birth = None
 
-                print("asdf")
+                #print("asdf")
                 conflict_message = self.accountService.checkAccountPath(email, account_path)
                 if conflict_message:
                     return JsonResponse({'success': False, 'error_message': conflict_message}, status=409)
 
-                print("asdfasdf")
+                #print("asdfasdf")
                 account = self.accountService.checkEmailDuplication(email)
                 print(account)
                 is_new_account = False
@@ -83,14 +83,87 @@ class NaverOauthController(viewsets.ViewSet):
 
                 print(userToken)
 
-                response = JsonResponse({'message': 'login_status_ok'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
-                response['userToken'] = userToken
-                response['account_id'] = account.id
-                response["Access-Control-Expose-Headers"] = "userToken, account_id"
+                response = JsonResponse({'message': f'login_status_ok, usertoken : {userToken}, account_id : {account.id}'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
+                response['usertoken'] = userToken
+                response['account-id'] = account.id
+                response["Access-Control-Expose-Headers"] = "usertoken,account-id"
+                print(response.items())
                 return response
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+    def requestAccessTokenForApp(self, request):
+        code = request.GET.get('code')
+        state = request.GET.get('state')
+        if not code:
+            return JsonResponse({'error': 'code is required'}, status=400)
+
+        print(f"[NAVER] Received code: {code}, state: {state}")
+
+        try:
+            tokenResponse = self.naverOauthService.requestAccessTokenForApp(code, state)
+            accessToken = tokenResponse['access_token']
+            print(f"[NAVER] accessToken: {accessToken}")
+
+            with transaction.atomic():
+                userInfo = self.naverOauthService.requestUserInfo(accessToken)
+                print(f"[NAVER] userInfo: {userInfo}")
+
+                account_path = "Naver"
+                role_type = RoleType.USER
+                response = userInfo.get('response', {})
+                email = response.get('email', '')
+                nickname = response.get('nickname', '')
+                name = nickname  # 네이버는 실명 정보 없음
+                phone_num = ''
+                address = ''
+                gender = response.get('gender', '')
+                birthyear = response.get('birthyear', '')
+                birthday = response.get('birthday', '')
+                payment = ''
+                subscribed = False
+                age = response.get('age', '')
+
+                birth = None
+                if birthyear and birthday:
+                    try:
+                        birth = datetime.strptime(f"{birthyear}-{birthday}", "%Y-%m-%d").date()
+                    except ValueError:
+                        birth = None
+
+                account = self.accountService.checkEmailDuplication(email)
+                if account is None:
+                    account = self.accountService.createAccount(email, account_path, role_type)
+                    self.accountProfileService.createAccountProfile(
+                    account.id, name, nickname, phone_num, address, gender,
+                    birth.strftime("%Y-%m-%d") if birth else None, payment, subscribed, age
+                )
+
+                self.accountService.updateLastUsed(account.id)
+                self.redisCacheService.storeKeyValue(account.email, account.id)
+
+                userToken = self.__createUserTokenWithAccessToken(account, accessToken)
+                print(userToken)
+                return HttpResponse(f"""
+                    <html>
+                      <body>
+                        <script>
+                          const userToken = '{userToken}';
+                          const email = '{email}';
+                          const nickname = '{nickname}';
+                          window.location.href = 'flutter://naver-login-success?userToken=' + encodeURIComponent(userToken) + '&email=' + encodeURIComponent(email) + '&nickname=' + encodeURIComponent(nickname);
+                        </script>
+                      </body>
+                    </html>
+                """)
+
+        except Exception as e:
+            print(f"[NAVER] Error: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+
 
     def requestUserToken(self, request):
         access_token = request.data.get('access_token')
@@ -139,7 +212,7 @@ class NaverOauthController(viewsets.ViewSet):
                 self.redisCacheService.storeKeyValue(account.email, account.id)
 
                 response = JsonResponse({'message': 'login_status_ok'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
-                response['userToken'] = userToken
+                response['usertoken'] = userToken
                 response['account_id'] = account.id
                 return response
 

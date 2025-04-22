@@ -9,7 +9,7 @@ class DeleteAccountController(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def deactivateAccount(self, request):
-        account_id = request.data.get("account_id")
+        account_id = request.data.get("account-id")
         if not account_id:
             return Response({"error": "account_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -2,8 +2,10 @@ import uuid
 from datetime import datetime
 import random
 
+#import traceback
+
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets, status
 
 from google_authentication.service.google_oauth_service_impl import GoogleOauthServiceImpl
@@ -45,12 +47,10 @@ class GoogleOauthController(viewsets.ViewSet):
                 payment = ""
                 subscribed = False
 
-                userToken = f"google-{uuid.uuid4()}"
-                self.redisCacheService.storeKeyValue(userToken, email)
                 account = self.accountService.checkEmailDuplication(email)
 
                 if account:
-                    conflict_message = self.accountService.checkAccountPathByToken(email, account_path)
+                    conflict_message = self.accountService.checkAccountPath(email, account_path)
                     if conflict_message:
                         return JsonResponse({'success': False, 'error_message': conflict_message}, status=409)
                 
@@ -64,18 +64,75 @@ class GoogleOauthController(viewsets.ViewSet):
                     )
 
                 self.accountService.updateLastUsed(account.id)
-                self.redisCacheService.storeKeyValue(account.email, account.id)
+                userToken = f"google-{uuid.uuid4()}"
+                self.redisCacheService.storeKeyValue(userToken, str(account.id))
+                self.redisCacheService.storeKeyValue(account.email, str(account.id))
 
                 response = JsonResponse({'message': 'login_status_ok'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
                 response['userToken'] = userToken
-                response['account_id'] = account.id
-                response["Access-Control-Expose-Headers"] = "userToken, account_id"
+                response['account-id'] = str(account.id)
+                response["Access-Control-Expose-Headers"] = "userToken, account-id"
                 return response
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
+
+    # def requestAccessTokenForApp(self, request):
+    #     code = request.GET.get('code')
+    #     if not code:
+    #         return JsonResponse({'error': 'code is required'}, status=400)
+    #
+    #     print(f"[GOOGLE] Received code: {code}")
+    #
+    #     try:
+    #         tokenResponse = self.googleOauthService.requestAccessTokenForApp(code)
+    #         accessToken = tokenResponse['access_token']
+    #         print(f"[GOOGLE] accessToken: {accessToken}")
+    #
+    #         with transaction.atomic():
+    #             userInfo = self.googleOauthService.requestUserInfo(accessToken)
+    #             print(f"[GOOGLE] userInfo: {userInfo}")
+    #
+    #             email = userInfo.get('email', '')
+    #             nickname = userInfo.get('name', '')
+    #
+    #             account = self.accountService.checkEmailDuplication(email)
+    #             if account is None:
+    #                 account = self.accountService.createAccount(email)
+    #                 self.accountProfileService.createAccountProfile(
+    #                     account.getId(), nickname
+    #                 )
+    #
+    #             userToken = self.__createUserTokenWithAccessToken(account, accessToken)
+    #
+    #             return HttpResponse(f"""
+    #                 <html>
+    #                   <body>
+    #                     <script>
+    #                       const userToken = '{userToken}';
+    #                       const email = '{email}';
+    #                       const nickname = '{nickname}';
+    #                       window.location.href = 'flutter://google-login-success?userToken=' + encodeURIComponent(userToken) + '&email=' + encodeURIComponent(email) + '&nickname=' + encodeURIComponent(nickname);
+    #                     </script>
+    #                   </body>
+    #                 </html>
+    #             """)
+    #
+    #     except Exception as e:
+    #         print(f"[GOOGLE] Error: {str(e)}")
+    #         return JsonResponse({'error': str(e)}, status=500)
+
+
     def requestUserToken(self, request):
+        #print("point AA3 [Google] 받은 request.data:", request.data)
+
+        name = request.data.get('name') or request.data.get('nickname', '')  # 추후 삭제
+        nickname = request.data.get('nickname', '')                          # 추후 삭제
+
+        print("✔AA4 name:", name)
+        print("✔AA5 nickname:", nickname)
+
         access_token = request.data.get('access_token')
         email = request.data.get('email')
         account_path = "Google"
@@ -96,8 +153,10 @@ class GoogleOauthController(viewsets.ViewSet):
                 birth = None
 
         if not access_token:
+            print("point AA1")
             return JsonResponse({'error': 'Access token is required'}, status=400)
         if not email:
+            print("point AA2")
             return JsonResponse({'error': 'Email is required'}, status=400)
 
         try:
@@ -106,10 +165,10 @@ class GoogleOauthController(viewsets.ViewSet):
 
                 account = self.accountService.checkEmailDuplication(email)
                 userToken = f"google-{uuid.uuid4()}"
-                self.redisCacheService.storeKeyValue(userToken, email)
+                # self.redisCacheService.storeKeyValue(userToken, account.id)
 
                 if account:
-                    conflict_message = self.accountService.checkAccountPathByToken(account.id, userToken, account_path)
+                    conflict_message = self.accountService.checkAccountPath(email, account_path)
                     if conflict_message:
                         return JsonResponse({'success': False, 'error_message': conflict_message}, status=601)
 
@@ -121,16 +180,19 @@ class GoogleOauthController(viewsets.ViewSet):
                     self.accountProfileService.createAccountProfile(
                         account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed
                     )
-
-                self.accountService.updateLastUsed(account.id)
-                self.redisCacheService.storeKeyValue(account.email, account.id)
+                #userToken = f"google-{uuid.uuid4()}"
+                self.redisCacheService.storeKeyValue(userToken, str(account.id))
+                self.accountService.updateLastUsed(str(account.id))
+                self.redisCacheService.storeKeyValue(account.email, str(account.id))
 
                 response = JsonResponse({'message': 'login_status_ok'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
-                response['userToken'] = userToken
-                response['account_id'] = account.id
+                response['usertoken'] = userToken
+                response['account-id'] = account.id
                 return response
 
         except Exception as e:
+            print("AAA6 예외 발생:", e)
+            #traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
 
     def __generateUniqueNickname(self):
@@ -145,9 +207,11 @@ class GoogleOauthController(viewsets.ViewSet):
     def __createUserTokenWithAccessToken(self, account, accessToken):
         try:
             userToken = f"google-{uuid.uuid4()}"
-            self.redisCacheService.storeKeyValue(account.getId(), accessToken)
-            self.redisCacheService.storeKeyValue(userToken, account.getId())
+            self.redisCacheService.storeKeyValue(str(account.getId()), accessToken)
+            self.redisCacheService.storeKeyValue(userToken, str(account.getId()))
             return userToken
         except Exception as e:
             print('Redis에 토큰 저장 중 에러:', e)
             raise RuntimeError('Redis에 토큰 저장 중 에러')
+
+

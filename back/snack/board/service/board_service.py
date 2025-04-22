@@ -41,3 +41,8 @@ class BoardService(ABC):
     def deleteBoard(self, board_id: int) -> bool:
         """게시글을 삭제한다."""
         pass
+
+    @abstractmethod
+    def deleteBoardWithToken(self, board_id: int) -> bool:
+        """게시글 삭제 유효성 검사."""
+        pass

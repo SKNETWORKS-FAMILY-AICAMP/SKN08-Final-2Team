@@ -1,12 +1,14 @@
 from django.db import models
 
-# Create your models here.
-
 class Restaurant(models.Model):
-    name = models.CharField(max_length=255)  # 식당 이름
-    latitude = models.FloatField(null=True, blank=True)           # 위도
-    longitude = models.FloatField(null=True, blank=True)          # 경도
-    address = models.TextField()             # 주소
+    name = models.CharField(max_length=255)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    address = models.TextField()
+    rating = models.FloatField(null=True, blank=True)
+    reviewCount = models.IntegerField(null=True, blank=True)
+    category = models.CharField(max_length=100, null=True, blank=True)
+    closed = models.CharField(max_length=255, null = True, default=False)
 
     class Meta:
         db_table = 'restaurants'

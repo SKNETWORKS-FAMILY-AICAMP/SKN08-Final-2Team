@@ -13,3 +13,7 @@ class GoogleOauthRepository(ABC):
     @abstractmethod
     def getUserInfo(self, accessToken):
         pass
+
+    # @abstractmethod
+    # def getAccessTokenForApp(self, accessToken):
+    #     pass

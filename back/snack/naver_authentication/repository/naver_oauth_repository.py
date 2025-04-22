@@ -13,3 +13,7 @@ class NaverOauthRepository(ABC):
     @abstractmethod
     def getUserInfo(self, accessToken):
         pass
+
+    @abstractmethod
+    def getAccessTokenForApp(self, code, state):
+        pass

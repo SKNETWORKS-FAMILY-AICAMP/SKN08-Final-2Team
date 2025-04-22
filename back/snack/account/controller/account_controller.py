@@ -30,7 +30,7 @@ class AccountController(viewsets.ViewSet):
         return JsonResponse({"success": True, "account_id": account.id}, status=status.HTTP_201_CREATED)
 
     def getAccount(self, request):
-        account_id = request.headers.get("Account-Id")  # ✅ 핵심
+        account_id = request.headers.get("account-id")  
         user_token = request.headers.get("userToken")
 
         if not user_token or not account_id:

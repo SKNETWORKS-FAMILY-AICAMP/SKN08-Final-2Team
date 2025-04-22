@@ -33,6 +33,7 @@ export function createAxiosInstances() {
           
                 if (userToken) {
                   config.headers["userToken"] = userToken;
+                  config.headers["Authorization"] = `Bearer ${userToken}`;
                 }
                 if (accountId) {
                   config.headers["Account-Id"] = String(accountId);

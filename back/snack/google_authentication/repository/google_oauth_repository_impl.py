@@ -13,6 +13,7 @@ class GoogleOauthRepositoryImpl(GoogleOauthRepository):
             cls.__instance.clientId = settings.GOOGLE['CLIENT_ID']
             cls.__instance.clientSecret = settings.GOOGLE['CLIENT_SECRET']
             cls.__instance.redirectUri = settings.GOOGLE['REDIRECT_URI']
+            cls.__instance.redirectUri = settings.GOOGLE['REDIRECT_URI_FOR_APP']
             cls.__instance.tokenRequestUri = settings.GOOGLE['TOKEN_REQUEST_URI']
             cls.__instance.userInfoRequestUri = settings.GOOGLE['USER_INFO_REQUEST_URI']
 
@@ -45,3 +46,14 @@ class GoogleOauthRepositoryImpl(GoogleOauthRepository):
         headers = {'Authorization': f'Bearer {accessToken}'}
         response = requests.get(self.userInfoRequestUri, headers=headers)
         return response.json()
+
+    # def getAccessTokenForApp(self, code):
+    #     accessTokenRequestForApp = {
+    #         'grant_type': 'authorization_code',
+    #         'client_id': self.clientId,
+    #         'client_secret': self.clientSecret,
+    #         'code': code,
+    #         'redirect_uri': self.redirectUriForApp,
+    #     }
+    #     response = requests.post(self.tokenRequestUri, data=accessTokenRequestForApp)
+    #     return response.json()
