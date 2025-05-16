@@ -52,7 +52,8 @@ def restaurant_search(request):
         word_query = (
             Q(name__icontains=word) |
             Q(category__icontains=word) |
-            Q(address__icontains=word)
+            Q(address__icontains=word) |
+            Q(keyword__icontains=word)  # ✅ keyword 필드 추가
         )
         query &= word_query  # ✅ AND 조건으로 누적
 

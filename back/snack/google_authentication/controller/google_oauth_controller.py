@@ -46,21 +46,31 @@ class GoogleOauthController(viewsets.ViewSet):
                 birth = None
                 payment = ""
                 subscribed = False
+                alarm_board_status = True
+                alarm_comment_status = True
 
                 account = self.accountService.checkEmailDuplication(email)
-
                 if account:
                     conflict_message = self.accountService.checkAccountPath(email, account_path)
                     if conflict_message:
                         return JsonResponse({'success': False, 'error_message': conflict_message}, status=409)
-                
+
+                account, status_message = self.accountService.checkAccountStatus(account)
+                print(account, status_message)  # AAA 디버깅
+
+                if status_message:
+                    if "SUSPENDED" in status_message:
+                        return JsonResponse({'success': False, 'error_message': status_message},status=414)
+                    elif "BANNED" in status_message:
+                        return JsonResponse({'success': False, 'error_message': status_message},status=444)
+
                 is_new_account = False
                 if account is None:
                     is_new_account = True
                     account = self.accountService.createAccount(email, account_path, role_type)
                     nickname = self.__generateUniqueNickname()
                     self.accountProfileService.createAccountProfile(
-                        account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed
+                        account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed, alarm_board_status, alarm_comment_status
                     )
 
                 self.accountService.updateLastUsed(account.id)
@@ -78,60 +88,15 @@ class GoogleOauthController(viewsets.ViewSet):
             return JsonResponse({'error': str(e)}, status=500)
 
 
-    # def requestAccessTokenForApp(self, request):
-    #     code = request.GET.get('code')
-    #     if not code:
-    #         return JsonResponse({'error': 'code is required'}, status=400)
-    #
-    #     print(f"[GOOGLE] Received code: {code}")
-    #
-    #     try:
-    #         tokenResponse = self.googleOauthService.requestAccessTokenForApp(code)
-    #         accessToken = tokenResponse['access_token']
-    #         print(f"[GOOGLE] accessToken: {accessToken}")
-    #
-    #         with transaction.atomic():
-    #             userInfo = self.googleOauthService.requestUserInfo(accessToken)
-    #             print(f"[GOOGLE] userInfo: {userInfo}")
-    #
-    #             email = userInfo.get('email', '')
-    #             nickname = userInfo.get('name', '')
-    #
-    #             account = self.accountService.checkEmailDuplication(email)
-    #             if account is None:
-    #                 account = self.accountService.createAccount(email)
-    #                 self.accountProfileService.createAccountProfile(
-    #                     account.getId(), nickname
-    #                 )
-    #
-    #             userToken = self.__createUserTokenWithAccessToken(account, accessToken)
-    #
-    #             return HttpResponse(f"""
-    #                 <html>
-    #                   <body>
-    #                     <script>
-    #                       const userToken = '{userToken}';
-    #                       const email = '{email}';
-    #                       const nickname = '{nickname}';
-    #                       window.location.href = 'flutter://google-login-success?userToken=' + encodeURIComponent(userToken) + '&email=' + encodeURIComponent(email) + '&nickname=' + encodeURIComponent(nickname);
-    #                     </script>
-    #                   </body>
-    #                 </html>
-    #             """)
-    #
-    #     except Exception as e:
-    #         print(f"[GOOGLE] Error: {str(e)}")
-    #         return JsonResponse({'error': str(e)}, status=500)
-
 
     def requestUserToken(self, request):
         #print("point AA3 [Google] 받은 request.data:", request.data)
 
-        name = request.data.get('name') or request.data.get('nickname', '')  # 추후 삭제
-        nickname = request.data.get('nickname', '')                          # 추후 삭제
+        name = request.data.get('name') or request.data.get('nickname', '')
+        nickname = request.data.get('nickname', '')
 
-        print("✔AA4 name:", name)
-        print("✔AA5 nickname:", nickname)
+        print("✔AA4 name:", name)    # AAA 추후 삭제
+        print("✔AA5 nickname:", nickname)     # AAA  추후 삭제
 
         access_token = request.data.get('access_token')
         email = request.data.get('email')
@@ -144,6 +109,9 @@ class GoogleOauthController(viewsets.ViewSet):
         birthday = request.data.get('birthday', "")
         payment = request.data.get('payment', "")
         subscribed = request.data.get('subscribed', False)
+        alarm_board_status = request.data.get('alarm_board_status', True)
+        alarm_comment_status = request.data.get('alarm_comment_status', True)
+
 
         birth = None
         if birthday and birthyear:
@@ -178,13 +146,13 @@ class GoogleOauthController(viewsets.ViewSet):
                     account = self.accountService.createAccount(email, account_path, role_type)
                     nickname = self.__generateUniqueNickname()
                     self.accountProfileService.createAccountProfile(
-                        account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed
+                        account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed, alarm_board_status, alarm_comment_status
                     )
                 #userToken = f"google-{uuid.uuid4()}"
                 self.redisCacheService.storeKeyValue(userToken, str(account.id))
                 self.accountService.updateLastUsed(str(account.id))
                 self.redisCacheService.storeKeyValue(account.email, str(account.id))
-
+                print(f"Google-userToken-{userToken}") #  디버깅 AAA
                 response = JsonResponse({'message': 'login_status_ok'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
                 response['usertoken'] = userToken
                 response['account-id'] = account.id

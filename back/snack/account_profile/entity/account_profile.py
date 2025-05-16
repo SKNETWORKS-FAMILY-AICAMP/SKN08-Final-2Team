@@ -21,6 +21,8 @@ class AccountProfile(models.Model):
     account_pay = models.JSONField(null=True, blank=True)  # 결제 정보 (수정 가능)
     account_sub = models.BooleanField(default=False)  # 구독 여부 (수정 가능)
     account_age = models.CharField(max_length=100,null=True, blank=True)
+    alarm_board_status = models.BooleanField(default=True)  # 댓글 알림 허용 디폴트
+    alarm_comment_status = models.BooleanField(default=True)  # 대댓글 알림 허용 디폴트
 
     class Meta:
         db_table = 'account_profile'

@@ -49,6 +49,8 @@ class NaverOauthController(viewsets.ViewSet):
                 payment = ""
                 subscribed = False
                 age = ""
+                alarm_board_status = True
+                alarm_comment_status = True
 
 
                 birth = None
@@ -58,36 +60,44 @@ class NaverOauthController(viewsets.ViewSet):
                     except ValueError:
                         birth = None
 
-                #print("asdf")
+                #print("asdf")      # AAA
                 conflict_message = self.accountService.checkAccountPath(email, account_path)
                 if conflict_message:
                     return JsonResponse({'success': False, 'error_message': conflict_message}, status=409)
 
-                #print("asdfasdf")
+                #print("asdfasdf")   # AAA
                 account = self.accountService.checkEmailDuplication(email)
-                print(account)
+                account, status_message = self.accountService.checkAccountStatus(account)
+                print(account, status_message)  # AAA 디버깅
+
+                if status_message:
+                    if "SUSPENDED" in status_message:
+                        return JsonResponse({'success': False, 'error_message': status_message},status=414)
+                    elif "BANNED" in status_message:
+                        return JsonResponse({'success': False, 'error_message': status_message},status=444)
+
                 is_new_account = False
                 if account is None:
                     is_new_account = True
                     account = self.accountService.createAccount(email, account_path, role_type)
-                    print(account)
+                    print(account)  # AAA
                     nickname = self.__generateUniqueNickname()
-                    print(nickname)
+                    print(nickname)  # AAA
                     self.accountProfileService.createAccountProfile(
-                        account.id, name, nickname, phone_num, address, gender, birth.strftime("%Y-%m-%d") if birth else None, payment, subscribed, age
+                        account.id, name, nickname, phone_num, address, gender, birth.strftime("%Y-%m-%d") if birth else None, payment, subscribed, age, alarm_board_status, alarm_comment_status
                     )
 
                 self.accountService.updateLastUsed(account.id)
                 userToken = self.__createUserTokenWithAccessToken(account, accessToken)
                 self.redisCacheService.storeKeyValue(account.email, account.id)
 
-                print(userToken)
+                print(userToken)  # AAA
 
                 response = JsonResponse({'message': f'login_status_ok, usertoken : {userToken}, account_id : {account.id}'}, status=status.HTTP_201_CREATED if is_new_account else status.HTTP_200_OK)
                 response['usertoken'] = userToken
                 response['account-id'] = account.id
                 response["Access-Control-Expose-Headers"] = "usertoken,account-id"
-                print(response.items())
+                print(response.items())   # AAA
                 return response
 
         except Exception as e:
@@ -125,6 +135,9 @@ class NaverOauthController(viewsets.ViewSet):
                 payment = ''
                 subscribed = False
                 age = response.get('age', '')
+                alarm_board_status = True
+                alarm_comment_status = True
+
 
                 birth = None
                 if birthyear and birthday:
@@ -138,7 +151,7 @@ class NaverOauthController(viewsets.ViewSet):
                     account = self.accountService.createAccount(email, account_path, role_type)
                     self.accountProfileService.createAccountProfile(
                     account.id, name, nickname, phone_num, address, gender,
-                    birth.strftime("%Y-%m-%d") if birth else None, payment, subscribed, age
+                    birth.strftime("%Y-%m-%d") if birth else None, payment, subscribed, age, alarm_board_status, alarm_comment_status
                 )
 
                 self.accountService.updateLastUsed(account.id)
@@ -178,6 +191,8 @@ class NaverOauthController(viewsets.ViewSet):
         birthday = request.data.get('birthday', "")
         payment = request.data.get('payment', "")
         subscribed = request.data.get('subscribed', False)
+        alarm_board_status = request.data.get('alarm_board_status', True)
+        alarm_comment_status = request.data.get('alarm_comment_status', True)
 
         birth = None
         if birthday and birthyear:
@@ -204,7 +219,7 @@ class NaverOauthController(viewsets.ViewSet):
                     account = self.accountService.createAccount(email, account_path, role_type)
                     nickname = self.__generateUniqueNickname()
                     self.accountProfileService.createAccountProfile(
-                        account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed
+                        account.id, name, nickname, phone_num, address, gender, birth, payment, subscribed, alarm_board_status, alarm_comment_status
                     )
 
                 self.accountService.updateLastUsed(account.id)

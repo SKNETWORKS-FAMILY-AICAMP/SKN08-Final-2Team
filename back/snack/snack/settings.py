@@ -60,8 +60,20 @@ INSTALLED_APPS = [
     'delete_account',
     'github_authentication',
     'meta_authentication',
-    'account_prefer'
+    'account_prefer',
+    'report',
+    #'mypage',
+    'chat_history',
+    'account_scrap',
+    # 'django_crontab',
+    'account_alarm',
 ]
+
+
+# CRONJOBS = [
+#     ('0 0 * * *', 'account_management.management.commands.release_suspended_accounts.Command'),
+#     ('0 0 * * 0', 'account_management.management.commands.delete_expired_accounts.Command'),
+# ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -101,6 +113,7 @@ CORS_ALLOW_HEADERS = [
     'x-request-with',
     'usertoken',
     'account-id',
+    'x-account-id',
 ]
 
 CORS_EXPOSE_HEADERS = ['usertoken', 'account-id', 'authorization']
@@ -142,6 +155,7 @@ GITHUB = {
     'TOKEN_REQUEST_URI': os.getenv('GITHUB_TOKEN_REQUEST_URI'),
     'USER_INFO_REQUEST_URI': os.getenv('GITHUB_USER_INFO_REQUEST_URI'),
     'ADMIN_CODE': os.getenv('GITHUB_ADMIN_CODE'),
+    'SCOPE': os.getenv('GITHUB_SCOPE'),
 }
 
 META = {

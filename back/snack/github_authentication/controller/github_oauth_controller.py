@@ -75,7 +75,7 @@ class GithubOauthController(viewsets.ViewSet):
                     account = self.accountService.createAccount(email, account_path, role_type)
                     nickname = self.__generateUniqueNickname()
                     self.accountProfileService.createAccountProfile(
-                        account.id, github_login_name, nickname, "", "", "", None, "", False
+                        account.id, github_login_name, nickname, "", "", "", None, "", False, True, True
                     )
 
 

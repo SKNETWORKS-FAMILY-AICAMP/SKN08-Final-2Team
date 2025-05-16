@@ -1,4 +1,6 @@
+from enum import Enum
 from django.db import models
+from account.entity.account_status import AccountStatus
 from account.entity.account_role_type import AccountRoleType
 from django.utils.timezone import now, localtime
 import pytz
@@ -17,7 +19,15 @@ class Account(models.Model):
         null=True,
         blank=True
     )  # 가입 경로
-    is_active = models.BooleanField(default=True)  # 계정 활성 상태 (Soft Delete)
+
+    account_status = models.IntegerField(
+        default=AccountStatus.ACTIVE.value
+    )  # 계정 상태 기본값: Active = 0
+
+    # 계정 status 정지 관련 필드
+    suspended_until = models.DateTimeField(null=True, blank=True)  # 정지 만료일
+    suspension_reason = models.TextField(null=True, blank=True)  # 정지 사유
+    banned_reason = models.TextField(null=True, blank=True)  # 차단 사유 (영구 정지)
 
     class Meta:
         db_table = 'account'

@@ -11,3 +11,8 @@ class AccountProfileRepository(ABC):
     def findByAccount(self, account_id: int):
         """Account ID를 이용해 AccountProfile을 찾는다."""
         pass
+
+    @abstractmethod
+    def findByNickname(self, account_nickname: str):
+        """Account Nickname을 이용해 AccountProfile을 찾는다."""
+        pass

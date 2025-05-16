@@ -10,13 +10,21 @@ class DeleteAccountRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_account_id(self, account_id: int) -> Optional[DeletedAccount]:
+    def findByAccountId(self, account_id: int) -> Optional[DeletedAccount]:
         pass
 
     @abstractmethod
-    def find_all_before_threshold(self, threshold_date: datetime) -> List[DeletedAccount]:
+    def findAllBeforeThreshold(self, threshold_date: datetime) -> List[DeletedAccount]:
         pass
 
     @abstractmethod
     def delete(self, deleted_account: DeletedAccount) -> None:
         pass
+
+    # @abstractmethod
+    # def deactivateAccount(self, account_id: int) -> bool:
+    #     pass
+    #
+    # @abstractmethod
+    # def deleteAccountById(self, account_id: int) -> bool:
+    #     pass

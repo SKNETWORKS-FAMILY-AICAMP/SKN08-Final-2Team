@@ -29,7 +29,7 @@ class BoardController(viewsets.ViewSet):
         content = postRequest.get("content")
         end_time = postRequest.get("end_time")
         restaurant_id = postRequest.get("restaurant_id")
-        image = request.FILES.get("image")
+        image_url = postRequest.get("image_url")
 
         if not title or not content or not end_time:
             return JsonResponse({"error": "필수 항목 누락", "success": False}, status=status.HTTP_400_BAD_REQUEST)
@@ -39,8 +39,19 @@ class BoardController(viewsets.ViewSet):
         except ObjectDoesNotExist:
             return JsonResponse({"error": "작성자 계정을 찾을 수 없습니다", "success": False}, status=status.HTTP_404_NOT_FOUND)
 
-        restaurant = Restaurant(id=restaurant_id) if restaurant_id else None
-        board = self.__boardService.createBoard(title, content, author, image, end_time, restaurant)
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id) if restaurant_id else None
+        except Restaurant.DoesNotExist:
+            return JsonResponse({"error": "맛집 정보를 찾을 수 없습니다.", "success": False}, status=status.HTTP_404_NOT_FOUND)
+
+        board = self.__boardService.createBoard(
+            title=title,
+            content=content,
+            author=author,
+            end_time=end_time,
+            restaurant=restaurant,
+            image_url=image_url
+        )
 
         return JsonResponse({
             "success": True,
@@ -69,12 +80,14 @@ class BoardController(viewsets.ViewSet):
             "end_time": board.getEndTime(),
             "status": board.status,
             "image_url": board.getImageUrl(),
+            "restaurant": board.restaurant.name if board.restaurant else None,
+            "restaurant_id": board.restaurant.id if board.restaurant else None,
             "is_author": is_author,
             "success": True
         }, status=status.HTTP_200_OK)
 
     def updateBoard(self, request, board_id):
-        postRequest = request.data
+        postRequest = request.data or request.POST
         userToken = request.headers.get("Authorization", "").replace("Bearer ", "")
         account_id = self.__redisService.getValueByKey(userToken)
 
@@ -84,16 +97,28 @@ class BoardController(viewsets.ViewSet):
         title = postRequest.get("title")
         content = postRequest.get("content")
         end_time = postRequest.get("end_time")
-        restaurant_id = postRequest.get("restaurant")
-        image = request.FILES.get("image")
+        restaurant_id = postRequest.get("restaurant_id")
+        image_url = postRequest.get("image_url")
 
         try:
             user = AccountProfile.objects.get(account__id=account_id)
         except ObjectDoesNotExist:
             return JsonResponse({"error": "사용자를 찾을 수 없습니다.", "success": False}, status=status.HTTP_404_NOT_FOUND)
 
-        restaurant = Restaurant(id=restaurant_id) if restaurant_id else None
-        updated_board = self.__boardService.updateBoard(board_id, user, title, content, image, end_time, restaurant)
+        try:
+            restaurant = Restaurant.objects.get(id=restaurant_id) if restaurant_id else None
+        except Restaurant.DoesNotExist:
+            return JsonResponse({"error": "맛집 정보를 찾을 수 없습니다.", "success": False}, status=status.HTTP_404_NOT_FOUND)
+
+        updated_board = self.__boardService.updateBoard(
+            board_id=board_id,
+            user=user,
+            title=title,
+            content=content,
+            end_time=end_time,
+            restaurant=restaurant,
+            image_url=image_url
+        )
 
         if not updated_board:
             return JsonResponse({"error": "게시글을 찾을 수 없습니다.", "success": False}, status=status.HTTP_404_NOT_FOUND)
@@ -104,7 +129,8 @@ class BoardController(viewsets.ViewSet):
             "board_id": updated_board.id,
             "title": updated_board.title,
             "updated_at": updated_board.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
-            "restaurant": updated_board.restaurant.name if updated_board.restaurant else None
+            "restaurant": updated_board.restaurant.name if updated_board.restaurant else None,
+            "image_url": updated_board.getImageUrl(),
         }, status=status.HTTP_200_OK)
 
     def partial_update(self, request, board_id):
@@ -135,6 +161,10 @@ class BoardController(viewsets.ViewSet):
 
         if start_date and end_date:
             queryset = queryset.filter(end_time__range=[start_date, end_date])
+        elif start_date:
+            queryset = queryset.filter(end_time__gte=start_date)
+        elif end_date:
+            queryset = queryset.filter(end_time__range=[timezone.now().date(), end_date])
 
         if sort == "end_date":
             queryset = queryset.order_by('end_time')
@@ -149,6 +179,7 @@ class BoardController(viewsets.ViewSet):
                 "board_id": board.id,
                 "title": board.title,
                 "author_nickname": board.getAuthorNickname(),
+                "author_account_id": board.author.account.id,
                 "created_at": board.getCreatedAt(),
                 "end_time": board.getEndTime(),
                 "status": board.status,
@@ -168,3 +199,7 @@ class BoardController(viewsets.ViewSet):
         deleted, status_code, message = self.__boardService.deleteBoardWithToken(board_id, userToken)
 
         return JsonResponse({"success": deleted, "message": message}, status=status_code)
+
+    def countBoardsPerRestaurant(self, request):
+        result = self.__boardService.countBoardsByRestaurant()
+        return JsonResponse({"success": True, "data": list(result)}, safe=False)

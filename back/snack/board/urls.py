@@ -15,6 +15,7 @@ urlpatterns = [
     path('end-time-range/<int:start_hour>/<int:end_hour>', BoardController.as_view({'get': 'getBoardsByEndTimeRange'}), name='get-boards-by-end-time'),
     path('update/<int:board_id>', BoardController.as_view({'put': 'updateBoard', 'patch': 'partial_update'}), name='update-board'),
     path('delete/<int:board_id>', BoardController.as_view({'delete': 'deleteBoard'}), name='delete-board'),
+    path('count', BoardController.as_view({'get': 'countBoardsPerRestaurant'}), name='count-boards-by-restaurant'),
 ]
 
 # DRF router의 URL을 포함

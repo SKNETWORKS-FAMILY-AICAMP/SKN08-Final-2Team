@@ -28,6 +28,7 @@ class Command(BaseCommand):
                 review_count = row.get('리뷰수', None)
                 category = row.get('서브카테고리', '')
                 closed = row.get('영업시간', '')  # 폐업 여부 없음
+                keyword = row.get('키워드', '')  # 키워드 필드 추가
 
                 obj, created = Restaurant.objects.get_or_create(
                     name=name,
@@ -39,6 +40,7 @@ class Command(BaseCommand):
                         'reviewCount': review_count,
                         'category': category,
                         'closed': closed,
+                        'keyword': keyword,
                     }
                 )
                 msg = "✅ 저장 완료" if created else "⚠️ 이미 존재"

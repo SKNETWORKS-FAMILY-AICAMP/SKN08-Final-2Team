@@ -8,15 +8,15 @@ class DeleteAccountServiceImpl(DeleteAccountService):
         self.deletedAccountRepository = DeleteAccountRepositoryImpl()
         self.accountService = AccountServiceImpl.getInstance()
 
-    def deactivate_account(self, account_id: int) -> bool:
-        success = self.accountService.deactivate_account(account_id)
+    def deactivateAccount(self, account_id: int) -> bool:
+        success = self.accountService.deactivateAccount(account_id)
         if success:
             self.deletedAccountRepository.save(account_id)
         return success
 
-    def delete_expired_accounts(self) -> None:
+    def deleteExpiredAccounts(self) -> None:
         threshold_date = datetime.now() - timedelta(days=365 * 3)
-        expired_accounts = self.deletedAccountRepository.find_all_before_threshold(threshold_date)
+        expired_accounts = self.deletedAccountRepository.findAllBeforeThreshold(threshold_date)
 
         for deleted_account in expired_accounts:
             self.accountService.deleteAccountById(deleted_account.account_id)

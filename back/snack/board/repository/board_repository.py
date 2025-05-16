@@ -38,3 +38,8 @@ class BoardRepository(ABC):
     def delete(self, board_id: int):
         """게시글을 삭제한다."""
         pass
+
+    @abstractmethod
+    def countBoardsByRestaurant(self):
+        """식당별 게시글 수 반환"""
+        pass

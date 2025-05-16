@@ -72,7 +72,15 @@ class AccountProfileRepositoryImpl(AccountProfileRepository):
                 "account_age": age,
                 "account_pay": pay,
                 "account_sub": profile.account_sub,
+                "alarm_board_status": profile.alarm_board_status,
+                "alarm_comment_status": profile.alarm_comment_status
             }
 
         except ObjectDoesNotExist:
+            return None
+
+    def findByNickname(self, account_nickname: str):
+        try:
+            return AccountProfile.objects.get(account_nickname=account_nickname)
+        except AccountProfile.DoesNotExist:
             return None

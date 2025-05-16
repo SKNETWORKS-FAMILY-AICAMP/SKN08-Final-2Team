@@ -46,14 +46,3 @@ class GoogleOauthRepositoryImpl(GoogleOauthRepository):
         headers = {'Authorization': f'Bearer {accessToken}'}
         response = requests.get(self.userInfoRequestUri, headers=headers)
         return response.json()
-
-    # def getAccessTokenForApp(self, code):
-    #     accessTokenRequestForApp = {
-    #         'grant_type': 'authorization_code',
-    #         'client_id': self.clientId,
-    #         'client_secret': self.clientSecret,
-    #         'code': code,
-    #         'redirect_uri': self.redirectUriForApp,
-    #     }
-    #     response = requests.post(self.tokenRequestUri, data=accessTokenRequestForApp)
-    #     return response.json()

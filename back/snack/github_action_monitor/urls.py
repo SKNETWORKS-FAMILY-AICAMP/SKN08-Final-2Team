@@ -10,4 +10,7 @@ urlpatterns = [
     path('workflow',
          GithubActionMonitorController.as_view({ 'post': 'requestGithubActionWorkflow' }),
          name='Github Action Workflow 모니터링'),
+    path('trigger',
+         GithubActionMonitorController.as_view({'post': 'triggerWorkflow'}),
+         name='Github Action Workflow 실행'),
 ]

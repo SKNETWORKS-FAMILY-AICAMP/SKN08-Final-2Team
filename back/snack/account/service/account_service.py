@@ -23,9 +23,45 @@ class AccountService(ABC):
         pass
 
     @abstractmethod
-    def deactivate_account(self, account_id: int) -> bool:
+    def deactivateAccount(self, account_id: int) -> bool:
         pass
 
     @abstractmethod
     def deleteAccountById(self, account_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    def checkAccountPath(self, email: str, login_path: str):
+        pass
+
+    @abstractmethod
+    def updateRoleToAdmin(self, account_id):
+        pass
+
+    @abstractmethod
+    def suspendAccountById(self, account_id: int, reason: str, duration: int = None):
+        pass
+
+    @abstractmethod
+    def isSuspended(self, account_id: int):
+        pass
+
+    @abstractmethod
+    def unsuspendAccountById(self, account_id: int):
+        pass
+
+    @abstractmethod
+    def getSuspendedAccounts(self):
+        pass
+
+    @abstractmethod
+    def banAccountById(self, target_account_id: int, reason: str):
+        pass
+
+    @abstractmethod
+    def getBannedAccounts(self):
+        pass
+
+    @abstractmethod
+    def unbanAccountById(self, target_account_id: int):
         pass

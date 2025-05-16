@@ -46,3 +46,8 @@ class BoardService(ABC):
     def deleteBoardWithToken(self, board_id: int) -> bool:
         """게시글 삭제 유효성 검사."""
         pass
+
+    @abstractmethod
+    def countBoardsByRestaurant(self):
+        """식당별 게시글 수 반환"""
+        pass

@@ -57,3 +57,39 @@ class GithubActionMonitorController(viewsets.ViewSet):
         except Exception as e:
             print(f"Error in requestGithubActionWorkflow: {e}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def triggerWorkflow(self, request):
+        try:
+            userToken = request.data.get("userToken")
+            repoUrl = request.data.get("repoUrl")
+            workflowName = request.data.get("workflowName")
+
+            # 입력 데이터 디버깅
+            print(f"Received data: userToken={userToken}, repoUrl={repoUrl}, workflowName={workflowName}")
+
+            if not userToken or not repoUrl or not workflowName:
+                return Response({"message": "필수 데이터 누락"}, status=status.HTTP_400_BAD_REQUEST)
+
+            accountId = self.redisCacheService.getValueByKey(userToken)
+            # Redis에서 값 가져오는 과정 디버깅
+            print(f"Retrieved accountId from Redis: {accountId}")
+
+            if not accountId:
+                return Response({"message": "유효하지 않은 토큰"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            token = self.redisCacheService.getValueByKey(accountId)
+
+            # 서비스 호출 디버깅
+            print(f"Triggering workflow with accountId={accountId}, repoUrl={repoUrl}, workflowName={workflowName}")
+
+            result = self.githubActionMonitorService.triggerWorkflow(token, repoUrl, workflowName)
+            print(f"Workflow trigger result: {result}")
+
+            return Response(result, status=status.HTTP_200_OK)
+
+        except PermissionError as e:
+            print(f"Permission error: {str(e)}")
+            return Response({"message": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            print(f"Error occurred: {str(e)}")
+            return Response({"message": f"오류 발생: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

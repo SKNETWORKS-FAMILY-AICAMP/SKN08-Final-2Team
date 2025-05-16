@@ -6,5 +6,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         service = DeleteAccountServiceImpl()
-        service.delete_expired_accounts()
+        service.deleteExpiredAccounts()
         self.stdout.write(self.style.SUCCESS("✅ Expired accounts deleted successfully."))

@@ -23,3 +23,5 @@ class GithubActionMonitorServiceImpl(GithubActionMonitorService):
     def requestGithubActionWorkflow(self, token, repoUrl):
         return self.__githubActionMonitorRepository.getGithubActionWorkflow(token, repoUrl)
 
+    def triggerWorkflow(self, token: str, repoUrl: str, workflowName: str):
+        return self.__githubActionMonitorRepository.triggerGithubActionWorkflow(token, repoUrl, workflowName)

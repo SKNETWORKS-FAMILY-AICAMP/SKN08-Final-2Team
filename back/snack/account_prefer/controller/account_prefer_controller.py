@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from account_prefer.entity.account_prefer import AccountPrefer
 from account.entity.account import Account
+from rest_framework.decorators import api_view
+from account_prefer.serializer.account_prefer_serializer import AccountPreferSerializer
 
 class SaveAccountPreference(APIView):
     def post(self, request):
@@ -29,3 +31,19 @@ class SaveAccountPreference(APIView):
 
         prefer.save()
         return Response({"success": True}, status=200)
+
+    def get(self, request, account_id):
+        try:
+            account = Account.objects.get(id=account_id)
+        except Account.DoesNotExist:
+            return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            prefer = AccountPrefer.objects.get(account=account)
+        except AccountPrefer.DoesNotExist:
+            return Response({"error": "Preference not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AccountPreferSerializer(prefer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        

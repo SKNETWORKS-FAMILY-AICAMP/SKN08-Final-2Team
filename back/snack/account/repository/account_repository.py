@@ -22,3 +22,23 @@ class AccountRepository(ABC):
     def updateLastUsed(self, account_id: int):
         """로그인 시 마지막 접속 날짜를 업데이트한다."""
         pass
+
+    @abstractmethod
+    def findAccountPath(self, email: str):
+        pass
+
+    @abstractmethod
+    def updateSuspendedAccountStatus(self, account: Account) -> None:
+        pass
+
+    @abstractmethod
+    def updateBannedAccountStatus(self, account: Account) -> None:
+        pass
+
+    @abstractmethod
+    def findSuspendedAccounts(self):
+        pass
+
+    @abstractmethod
+    def findBannedAccounts(self):
+        pass
